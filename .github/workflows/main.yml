@@ -948,14 +948,17 @@ jobs:
         # Copy necessary configuration
         cp LinuxOS/Info.plist output/Payload/LinuxOS.app/
         
-        # Copy the ACTUAL compiled binary instead of using 'touch'
+        # Copy the ACTUAL compiled binary
         cp LinuxOS_binary output/Payload/LinuxOS.app/LinuxOS
         chmod +x output/Payload/LinuxOS.app/LinuxOS
         
         # Create embedded resources directory
         mkdir -p output/Payload/LinuxOS.app/embedded-linux
+        
+        # 🐧 Safe Rootfs Copy using Tar Pipeline (Preserves Symlinks on macOS)
         if [ -d "embedded-linux/rootfs" ]; then
-          cp -r embedded-linux/rootfs/* output/Payload/LinuxOS.app/embedded-linux/
+          echo "📦 Archiving and extracting rootfs to preserve symlinks..."
+          tar -C embedded-linux/rootfs -cf - . | tar -C output/Payload/LinuxOS.app/embedded-linux -xf -
         fi
         
         # Create app icon assets
@@ -969,7 +972,7 @@ jobs:
             { "idiom" : "iphone", "size" : "29x29", "scale" : "3x" },
             { "idiom" : "iphone", "size" : "40x40", "scale" : "2x" },
             { "idiom" : "iphone", "size" : "40x40", "scale" : "3x" },
-            { "idiom" : "iphone", "size" : "60x60", "scale" : "2x" },
+            { "idiom" : "60x60", "idiom" : "iphone", "scale" : "2x" },
             { "idiom" : "iphone", "size" : "60x60", "scale" : "3x" },
             { "idiom" : "ipad", "size" : "1024x1024", "scale" : "1x" }
           ],
@@ -979,18 +982,6 @@ jobs:
         
         ls -la output/Payload/LinuxOS.app/
 
-        
-
-    - name: Create signed IPA
-      run: |
-        cd output
-        
-        # Create IPA
-        zip -r -y LinuxOS.ipa Payload/
-        
-        # Verify
-        ls -lh LinuxOS.ipa
-        unzip -l LinuxOS.ipa | head -20
 
     - name: Generate installation instructions
       run: |
