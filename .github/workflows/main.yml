@@ -921,93 +921,64 @@ jobs:
         </dict>
         </plist>
         EOF
-
-    - name: Compile Swift code
+    - name: Compile Swift code for iOS (arm64)
       run: |
         cd LinuxOS/Sources
         
-        # Combine all Swift files
-        cat AppDelegate.swift LinuxDesktopViewController.swift \
-            TerminalViewController.swift EmbeddedLinuxEngine.swift \
-            FileManagerViewController.swift > main.swift
+        echo "🚀 Finding iOS SDK Path..."
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
         
-        ls -la
+        echo "📦 Compiling Swift sources into a real Mach-O binary..."
+        swiftc -target arm64-apple-ios15.0 \
+               -sdk "$SDK_PATH" \
+               AppDelegate.swift \
+               LinuxDesktopViewController.swift \
+               TerminalViewController.swift \
+               EmbeddedLinuxEngine.swift \
+               FileManagerViewController.swift \
+               -o ../../LinuxOS_binary
+               
+        ls -lh ../../LinuxOS_binary
 
     - name: Create IPA package
       run: |
         mkdir -p output/Payload/LinuxOS.app
         
-        # Copy necessary files
+        # Copy necessary configuration
         cp LinuxOS/Info.plist output/Payload/LinuxOS.app/
         
-        # Create minimal binary
-        touch output/Payload/LinuxOS.app/LinuxOS
+        # Copy the ACTUAL compiled binary instead of using 'touch'
+        cp LinuxOS_binary output/Payload/LinuxOS.app/LinuxOS
         chmod +x output/Payload/LinuxOS.app/LinuxOS
         
         # Create embedded resources directory
         mkdir -p output/Payload/LinuxOS.app/embedded-linux
-        cp -r embedded-linux/rootfs/* output/Payload/LinuxOS.app/embedded-linux/ 2>/dev/null || echo "Rootfs copy skipped"
+        if [ -d "embedded-linux/rootfs" ]; then
+          cp -r embedded-linux/rootfs/* output/Payload/LinuxOS.app/embedded-linux/
+        fi
         
         # Create app icon assets
         mkdir -p output/Payload/LinuxOS.app/Assets.xcassets/AppIcon.appiconset
-        
         cat > output/Payload/LinuxOS.app/Assets.xcassets/AppIcon.appiconset/Contents.json << 'EOFICON'
         {
           "images" : [
-            {
-              "idiom" : "iphone",
-              "size" : "20x20",
-              "scale" : "2x"
-            },
-            {
-              "idiom" : "iphone",
-              "size" : "20x20",
-              "scale" : "3x"
-            },
-            {
-              "idiom" : "iphone",
-              "size" : "29x29",
-              "scale" : "2x"
-            },
-            {
-              "idiom" : "iphone",
-              "size" : "29x29",
-              "scale" : "3x"
-            },
-            {
-              "idiom" : "iphone",
-              "size" : "40x40",
-              "scale" : "2x"
-            },
-            {
-              "idiom" : "iphone",
-              "size" : "40x40",
-              "scale" : "3x"
-            },
-            {
-              "idiom" : "iphone",
-              "size" : "60x60",
-              "scale" : "2x"
-            },
-            {
-              "idiom" : "iphone",
-              "size" : "60x60",
-              "scale" : "3x"
-            },
-            {
-              "idiom" : "ipad",
-              "size" : "1024x1024",
-              "scale" : "1x"
-            }
+            { "idiom" : "iphone", "size" : "20x20", "scale" : "2x" },
+            { "idiom" : "iphone", "size" : "20x20", "scale" : "3x" },
+            { "idiom" : "iphone", "size" : "29x29", "scale" : "2x" },
+            { "idiom" : "iphone", "size" : "29x29", "scale" : "3x" },
+            { "idiom" : "iphone", "size" : "40x40", "scale" : "2x" },
+            { "idiom" : "iphone", "size" : "40x40", "scale" : "3x" },
+            { "idiom" : "iphone", "size" : "60x60", "scale" : "2x" },
+            { "idiom" : "iphone", "size" : "60x60", "scale" : "3x" },
+            { "idiom" : "ipad", "size" : "1024x1024", "scale" : "1x" }
           ],
-          "info" : {
-            "version" : 1,
-            "author" : "xcode"
-          }
+          "info" : { "version" : 1, "author" : "xcode" }
         }
         EOFICON
         
         ls -la output/Payload/LinuxOS.app/
+
+        
 
     - name: Create signed IPA
       run: |
