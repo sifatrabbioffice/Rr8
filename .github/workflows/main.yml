@@ -1298,7 +1298,7 @@ jobs:
         cat output/INSTALLATION.txt
 
     - name: Upload IPA artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Linux-OS-iPhone-App
         path: output/
