@@ -32,7 +32,7 @@ jobs:
         
         # Alpine minimal rootfs (~40MB)
         wget -O alpine-minirootfs.tar.gz \
-          http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/aarch64/alpine-minirootfs-3.23.0-aarch64.tar.gz](http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/aarch64/alpine-minirootfs-3.23.0-aarch64.tar.gz
+          http://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/aarch64/alpine-minirootfs-3.23.0-aarch64.tar.gz
         
         # Extract
         mkdir -p rootfs
