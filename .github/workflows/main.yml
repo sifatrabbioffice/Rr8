@@ -1279,8 +1279,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Linux-OS-iPhone-App
-        path: output/
+        path: |
+          output/LinuxOS.ipa
+          output/INSTALLATION.txt
         retention-days: 90
+        overwrite: true # 👈 এই লাইনটি কনফ্লিক্ট এরর দূর করে পুরনো ফাইলকে ওভাররাইট করবে
+
 
     - name: Create GitHub Release and Upload Assets
       uses: softprops/action-gh-release@v2
