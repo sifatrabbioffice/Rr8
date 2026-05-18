@@ -449,7 +449,6 @@ jobs:
             }
         }
         EOFSWIFT
-
     - name: Create Linux Engine
       run: |
         cat > LinuxOS/Sources/EmbeddedLinuxEngine.swift << 'EOFSWIFT'
@@ -471,10 +470,11 @@ jobs:
                 
                 // Parse command
                 let parts = trimmed.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
-                guard let cmd = parts.first else { return "" }
+                guard let cmdSubstring = parts.first else { return "" }
+                let cmd = String(cmdSubstring) // Swift Substring-কে পুরোপুরি String-এ কনভার্ট করা হলো
                 let args = parts.count > 1 ? String(parts[1]) : ""
                 
-                switch String(cmd).lowercased() {
+                switch cmd.lowercased() {
                     
                 case "help":
                     return helpCommand()
@@ -796,6 +796,7 @@ jobs:
             }
         }
         EOFSWIFT
+
 
     - name: Create File Manager view
       run: |
