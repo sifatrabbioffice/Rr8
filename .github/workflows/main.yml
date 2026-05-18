@@ -941,27 +941,26 @@ jobs:
                
         ls -lh ../../LinuxOS_binary
 
-    - name: Create IPA package
+    - name: Package and Create Standalone IPA
       run: |
+        echo "📂 Creating Payload directory structure..."
         mkdir -p output/Payload/LinuxOS.app
         
-        # Copy necessary configuration
+        # Copy necessary configuration and compiled binary
         cp LinuxOS/Info.plist output/Payload/LinuxOS.app/
-        
-        # Copy the ACTUAL compiled binary
         cp LinuxOS_binary output/Payload/LinuxOS.app/LinuxOS
         chmod +x output/Payload/LinuxOS.app/LinuxOS
         
         # Create embedded resources directory
         mkdir -p output/Payload/LinuxOS.app/embedded-linux
         
-        # 🐧 Safe Rootfs Copy using Tar Pipeline (Preserves Symlinks on macOS)
+        # Copy rootfs preserving symlinks
         if [ -d "embedded-linux/rootfs" ]; then
-          echo "📦 Archiving and extracting rootfs to preserve symlinks..."
+          echo "🐧 Copying embedded Linux rootfs..."
           tar -C embedded-linux/rootfs -cf - . | tar -C output/Payload/LinuxOS.app/embedded-linux -xf -
         fi
         
-        # Create app icon assets
+        # Create AppIcon asset structure
         mkdir -p output/Payload/LinuxOS.app/Assets.xcassets/AppIcon.appiconset
         cat > output/Payload/LinuxOS.app/Assets.xcassets/AppIcon.appiconset/Contents.json << 'EOFICON'
         {
@@ -972,7 +971,7 @@ jobs:
             { "idiom" : "iphone", "size" : "29x29", "scale" : "3x" },
             { "idiom" : "iphone", "size" : "40x40", "scale" : "2x" },
             { "idiom" : "iphone", "size" : "40x40", "scale" : "3x" },
-            { "idiom" : "60x60", "idiom" : "iphone", "scale" : "2x" },
+            { "idiom" : "iphone", "size" : "60x60", "scale" : "2x" },
             { "idiom" : "iphone", "size" : "60x60", "scale" : "3x" },
             { "idiom" : "ipad", "size" : "1024x1024", "scale" : "1x" }
           ],
@@ -980,7 +979,23 @@ jobs:
         }
         EOFICON
         
-        ls -la output/Payload/LinuxOS.app/
+        # 🤐 এই অংশটি সরাসরি ওয়ান-শটে .ipa তৈরি করবে
+        echo "🤐 Compressing Payload into a production-ready .ipa file..."
+        cd output
+        zip -r -y LinuxOS.ipa Payload/
+        
+        echo "✅ Verification:"
+        ls -lh LinuxOS.ipa
+
+    - name: Upload IPA artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Linux-OS-iPhone-App
+        path: |
+          output/LinuxOS.ipa
+          output/INSTALLATION.txt
+        retention-days: 90
+
 
 
     - name: Generate installation instructions
